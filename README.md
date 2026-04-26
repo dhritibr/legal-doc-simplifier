@@ -129,4 +129,4 @@ Open `http://localhost:5173`
 
 ---
 
-Built by [Dhriti B R](https://github.com/dhritibr) — CS undergraduate, RNS Institute of Technology
+
