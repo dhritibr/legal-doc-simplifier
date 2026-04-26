@@ -6,7 +6,6 @@ const { apiLimiter } = require('./src/middleware/rateLimit.middleware');
 
 const app = express();
 
-// CORS must be first before everything
 const corsOptions = {
   origin: [
     'http://localhost:5173',
@@ -20,7 +19,18 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // handle preflight for all routes
+
+// fix for new Express — use (req, res, next) instead of wildcard
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json());
