@@ -6,26 +6,23 @@ const { apiLimiter } = require('./src/middleware/rateLimit.middleware');
 
 const app = express();
 
-app.use(cors({
-  origin: function(origin, callback) {
-    const allowed = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      process.env.CLIENT_URL
-    ].filter(Boolean);
+// CORS must be first before everything
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://legal-doc-simplifier-1-rwei.onrender.com',
+    process.env.CLIENT_URL
+  ].filter(Boolean),
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
 
-    // allow requests with no origin (mobile apps, curl, etc)
-    if (!origin) return callback(null, true);
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // handle preflight for all routes
 
-    if (allowed.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api', apiLimiter);
