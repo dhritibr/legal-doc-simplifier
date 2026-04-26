@@ -6,11 +6,26 @@ const { apiLimiter } = require('./src/middleware/rateLimit.middleware');
 
 const app = express();
 
-app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', process.env.CLIENT_URL],
+  origin: function(origin, callback) {
+    const allowed = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      process.env.CLIENT_URL
+    ].filter(Boolean);
+
+    // allow requests with no origin (mobile apps, curl, etc)
+    if (!origin) return callback(null, true);
+
+    if (allowed.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
-}));;
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api', apiLimiter);
